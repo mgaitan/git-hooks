@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BRANCH_NAME=$(git branch 2>/dev/null | grep -e ^* | tr -d ' *')
+BRANCH_NAME=$(git symbolic-ref --short HEAD) 
 if [ -n "$BRANCH_NAME" ] && [ "$BRANCH_NAME" != "master" ]; then
-    echo "[$BRANCH_NAME] $(cat $1)" > $1
+	sed -i.bak -e "1s/^/[$BRANCH_NAME] /" $1
 fi
