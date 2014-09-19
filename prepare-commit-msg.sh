@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This way you can customize which branches should be skipped when
-# preperending commit message. 
+# prepending commit message. 
 if [ -z "$BRANCHES_TO_SKIP" ]; then
 	BRANCHES_TO_SKIP=("master" "develop" "test")
 fi 
