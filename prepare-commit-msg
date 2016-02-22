@@ -9,12 +9,24 @@ import subprocess
 
 excluded_branches = ['master', 'develop']
 
+def expand(issue):
+    """
+    >>> expand('XX-12+45')
+    'XX-12 XX-45'
+    """
+    if '+' not in issue:
+        return issue
+    key = issue.split('-')[0]
+    return ' '.join([("{}-{}".format(key, i) if not i.startswith(key) else i)
+                     for i in issue.split('+')])
+
 def main():
     current_branch = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
     if not current_branch or current_branch in excluded_branches:
         return
-    issues_mentioned = re.findall(r'[A-Z]+\-[0-9]+', current_branch)
-    issues_mentioned = ' '.join(issues_mentioned)
+    issues_mentioned = re.findall(r'[A-Z]+\-[0-9+]+', current_branch)
+
+    issues_mentioned = ' '.join(map(expand, issues_mentioned))
 
     with open(sys.argv[1]) as msg_file:
         original = msg_file.read()
