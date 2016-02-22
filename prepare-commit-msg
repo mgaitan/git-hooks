@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+# Save it as .git/hooks/prepare-commit-msg  in your repo cloned from JIRA
+# and make the file executable.
+
+import re
+import sys
+import subprocess
+
+excluded_branches = ['master', 'develop']
+
+def main():
+    current_branch = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
+    if not current_branch or current_branch in excluded_branches:
+        return
+    issues_mentioned = re.findall(r'[A-Z]+\-[0-9]+', current_branch)
+    issues_mentioned = ' '.join(issues_mentioned)
+
+    with open(sys.argv[1]) as msg_file:
+        original = msg_file.read()
+    msg = "{}: {}".format(issues_mentioned, original)
+    with open(sys.argv[1], 'w') as msg_file:
+        msg_file.write(msg)
+
+main()
