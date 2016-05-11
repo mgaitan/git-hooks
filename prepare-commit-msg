@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+
+"""
+This script, used as a git's prepare-commit-msg hook, parse the current branch name
+to extract issues IDs, (like XYZ-123) and mention that in the commit message.
+
+It's particularly useful to integrate Stash and Jira
+
+Install
+-------
+
+Just save it as .git/hooks/prepare-commit-msg  in your repo and make the file executable.
+
+"""
+
+
+
+import re
+import sys
+import subprocess
+
+excluded_branches = ['master', 'develop']
+
+def expand(issue):
+    """
+    a helper that expands a shortcut format used in some branch names
+    like XYZ-12+45 which stands for a branch related both to the issue
+    XYZ-12 and XYZ-45.
+
+        >>> expand('XX-12+45')
+        'XX-12 XX-45'
+    """
+    if '+' not in issue:
+        return issue
+    key = issue.split('-')[0]
+    return ' '.join([("{}-{}".format(key, i) if not i.startswith(key) else i)
+                     for i in issue.split('+')])
+
+def main():
+    try:
+        current_branch = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
+        if not current_branch or current_branch in excluded_branches:
+            return
+    except subprocess.CalledProcessError:
+        return
+
+    # read the original commit message
+    with open(sys.argv[1]) as msg_file:
+        original = msg_file.read()
+
+    # only issues in branch not already mentioned in the branch name.
+    # useful to ignore repeated mention on rebases.
+    issues_mentioned = [issue for issue in re.findall(r'[A-Z]+\-[0-9+]+', current_branch)
+                        if issue not in original]
+    if not issues_mentioned:
+        # if no issue were mentioned, leave the original commit message
+        return original
+
+    issues_mentioned = ' '.join(map(expand, issues_mentioned))
+    msg = "{}: {}".format(issues_mentioned, original)
+    with open(sys.argv[1], 'w') as msg_file:
+        msg_file.write(msg)
+
+if __name__ == '__main__':
+    main()
