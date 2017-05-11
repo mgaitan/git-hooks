@@ -50,7 +50,7 @@ def main():
 
     # only issues in branch not already mentioned in the branch name.
     # useful to ignore repeated mention on rebases.
-    issues_mentioned = [issue for issue in re.findall(r'[A-Z]+\-[0-9+]+', current_branch)
+    issues_mentioned = [issue for issue in re.findall(r'[A-Z]+\-[0-9+]+', current_branch.decode('utf-8'))
                         if issue not in original]
     if not issues_mentioned:
         # if no issue were mentioned, leave the original commit message
