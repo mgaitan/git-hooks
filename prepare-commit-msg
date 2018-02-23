@@ -35,7 +35,6 @@ def expand(issue):
     key = issue.split('-')[0]
     return ' '.join([("{}-{}".format(key, i) if not i.startswith(key) else i)
                      for i in issue.split('+')])
-
 def main():
     try:
         current_branch = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
@@ -48,14 +47,16 @@ def main():
     with open(sys.argv[1]) as msg_file:
         original = msg_file.read()
 
+    # Keep only lines which aren't commented out
+    uncommented = ''.join(o for o in original.splitlines() if not o.startswith('#'))
+
     # only issues in branch not already mentioned in the branch name.
     # useful to ignore repeated mention on rebases.
     issues_mentioned = [issue for issue in re.findall(r'[A-Z]+\-[0-9+]+', current_branch.decode('utf-8'))
-                        if issue not in original]
+                        if issue not in uncommented]
     if not issues_mentioned:
         # if no issue were mentioned, leave the original commit message
         return original
-
     issues_mentioned = ' '.join(map(expand, issues_mentioned))
     msg = "{}: {}".format(issues_mentioned, original)
     with open(sys.argv[1], 'w') as msg_file:
