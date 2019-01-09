@@ -11,7 +11,7 @@ save it as .git/hooks/pre-commit giving +x permission
 import sys
 from subprocess import Popen, PIPE
 
-proc = Popen(['git', 'grep', '-E', '-n', '[ ;]i?pdb'], stdout=PIPE)
+proc = Popen(['git', 'grep', '-E', '-n', '[ ;]i?pdb', '--', '*.py'], stdout=PIPE)
 pdb_check, _ = proc.communicate()
 if proc.returncode == 0:
     print("\033[31mPdb breakpoint found, shame on you! Please remove before commiting.\033[39m")
